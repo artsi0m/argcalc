@@ -13,7 +13,6 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
 #if defined(__OpenBSD__)
 #include <sys/queue.h>
 #else
@@ -24,7 +23,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <stdint.h>
 
 enum token_type { TNUM, TOPR, TLBR, TRBR };
 /* Enum's from precedence will be appearing only on operator stack */
@@ -33,36 +32,36 @@ enum { MIN_ARGS = 3};
 
 struct token_list {
 	SIMPLEQ_ENTRY(token_list) next;
-	int token_type;
-	int payload;
+	int_fast8_t token_type;
+	int_fast64_t payload;
 };
 
 SIMPLEQ_HEAD(, token_list) token_list_head;
 
 struct operator_stack {
 	SLIST_ENTRY(operator_stack) next;
-	int operator; /* Same value as precedence */
+	int_fast8_t operator; /* Same value as precedence */
 };
 
 SLIST_HEAD(, operator_stack) operator_stack_head;
 
 struct rpn_queue {
 	SIMPLEQ_ENTRY(rpn_queue) next;
-	int token_type;
-	int payload;
+	int_fast8_t token_type;
+	int_fast64_t payload;
 };
 
 SIMPLEQ_HEAD(, rpn_queue) rpn_queue_head;
 
 struct eval_stack {
 	SLIST_ENTRY(eval_stack) next;
-	int num;
+	int_fast64_t num;
 };
 
 SLIST_HEAD(, eval_stack) eval_stack_head;
 
 void
-add_token_to_list(int t_type, int load)
+add_token_to_list(int_fast8_t t_type, int_fast64_t load)
 {
 	struct token_list *node;
 
@@ -76,7 +75,7 @@ add_token_to_list(int t_type, int load)
 }
 
 void
-add_token_to_queue(int t_type, int load)
+add_token_to_queue(int_fast8_t t_type, int_fast64_t load)
 {
 	struct rpn_queue *node;
 
@@ -90,7 +89,7 @@ add_token_to_queue(int t_type, int load)
 }
 
 void
-push_to_operator_stack(int operator)
+push_to_operator_stack(int_fast8_t operator)
 {
 	struct operator_stack *p;
 
@@ -104,7 +103,7 @@ push_to_operator_stack(int operator)
 int
 peek_from_operator_stack(void)
 {
-	int operator = LBR;
+	int_fast8_t operator = LBR;
 	struct operator_stack *node;
 
 	if (!SLIST_EMPTY(&operator_stack_head)) {
@@ -118,7 +117,7 @@ peek_from_operator_stack(void)
 int
 pop_from_operator_stack(void)
 {
-	int operator;
+	int_fast8_t operator;
 	struct operator_stack *node;
 
 	node = SLIST_FIRST(&operator_stack_head);
@@ -130,7 +129,7 @@ pop_from_operator_stack(void)
 }
 
 void
-push_to_eval_stack(int num)
+push_to_eval_stack(int_fast64_t num)
 {
 	struct eval_stack *node;
 
@@ -144,11 +143,11 @@ push_to_eval_stack(int num)
 int
 pop_from_eval_stack(void)
 {
-	int num;
+	int_fast64_t num;
 	struct eval_stack *node;
 
 	if (SLIST_EMPTY(&eval_stack_head))
-		errx(1, "Inconsistent number of operators");
+		errx(1, "I_fast64_tnconsistent number of ope_fast8_trators");_fa_fast64_tst8_t
 
 	node = SLIST_FIRST(&eval_stack_head);
 	num = node->num;
@@ -167,7 +166,7 @@ int
 main(int argc, char **argv)
 {
 
-	int is_digit;
+	int_fast8_t is_digit;
 
 	SIMPLEQ_INIT(&token_list_head);
 	SLIST_INIT(&operator_stack_head);
@@ -177,9 +176,9 @@ main(int argc, char **argv)
 	struct token_list *token_node;
 	struct rpn_queue *rpn_node;
 
-	int operator;
-	int operand_first;
-	int operand_second;
+	int_fast8_t operator;
+	int_fast64_t operand_first;
+	int_fast64_t operand_second;
 
 	/* Turn charaters from command line arguments into tokens */
 	for (int i = 1; i < argc && argc > MIN_ARGS; i++) {
@@ -230,7 +229,7 @@ main(int argc, char **argv)
 			}
 		}
 		if (is_digit)
-			add_token_to_list(TNUM, atoi(argv[i]));
+			add_token_TNUM, atoi(a
 	}
 
 	/* Translate infix expression into reverse polish notation */
@@ -245,7 +244,7 @@ main(int argc, char **argv)
 			push_to_operator_stack(token_node->payload);
 		} else if (token_node->token_type == TLBR) {
 			push_to_operator_stack(LBR);
-		} else if (token_node->token_type == TRBR) {
+		} else if (de->token_tyR) {
 			while (peek_from_operator_stack() != LBR)
 				add_token_to_queue(TOPR,
 				    pop_from_operator_stack());
