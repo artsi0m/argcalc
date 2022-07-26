@@ -60,6 +60,12 @@ struct eval_stack {
 
 SLIST_HEAD(, eval_stack) eval_stack_head;
 
+/*
+ *  Add token which is either number, operator, left brace or right brace 
+ *  to token simple queue containing all tokens
+ *  type is token type, load is number if token_type is TNUM or
+ *  precedence if it is operator or left brace
+ */
 void
 add_token_to_list(int_fast8_t t_type, int_fast64_t load)
 {
@@ -74,6 +80,10 @@ add_token_to_list(int_fast8_t t_type, int_fast64_t load)
 	SIMPLEQ_INSERT_TAIL(&token_list_head, node, next);
 }
 
+/*
+ * Add token which is either number or operator to right polish notation 
+ * queue for further use in sorting yard algorithm
+ */
 void
 add_token_to_queue(int_fast8_t t_type, int_fast64_t load)
 {
@@ -88,6 +98,11 @@ add_token_to_queue(int_fast8_t t_type, int_fast64_t load)
 	SIMPLEQ_INSERT_TAIL(&rpn_queue_head, node, next);
 }
 
+/*
+ * Push certain operator or left brace to operator stack used in sorting
+ * yard algorithm. Operator stack contains only operator's and left brace 
+ * precedence's
+ */
 void
 push_to_operator_stack(int_fast8_t operator)
 {
@@ -99,7 +114,12 @@ push_to_operator_stack(int_fast8_t operator)
 	p->operator = operator;
 	SLIST_INSERT_HEAD(&operator_stack_head, p, next);
 }
-
+/*
+ * Peek from operator stack. This means to look what is on top of 
+ * operator stack and return it. If operator stack is empty it 
+ * return left bracket.
+ *  Used in sorting yard algorithm. 
+ */
 int
 peek_from_operator_stack(void)
 {
@@ -114,6 +134,10 @@ peek_from_operator_stack(void)
 	return operator;
 }
 
+/* 
+ * Pop from revers polish notation operator stack. Used in sorting yard
+ * algorithm. May lead to segfault if operator stack is empty
+ */
 int
 pop_from_operator_stack(void)
 {
@@ -128,6 +152,9 @@ pop_from_operator_stack(void)
 	return operator;
 }
 
+/*
+ * Push number to evaluation stack used to calculate expression
+ */
 void
 push_to_eval_stack(int_fast64_t num)
 {
@@ -140,6 +167,10 @@ push_to_eval_stack(int_fast64_t num)
 	SLIST_INSERT_HEAD(&eval_stack_head, node, next);
 }
 
+/*
+ * Pop number from evaluation stack. If stack is empty write error
+ * that tell's that there is inconsistent number of operators
+ */
 int
 pop_from_eval_stack(void)
 {
@@ -160,7 +191,7 @@ pop_from_eval_stack(void)
 /*
  * ARGument CALCulator
  * Evaluate infix expression supplied as command line 
- * arguments
+ * arguments as expr does it
  */
 int
 main(int argc, char **argv)
@@ -184,7 +215,7 @@ main(int argc, char **argv)
 	for (int i = 1; i < argc && argc > MIN_ARGS; i++) {
 		for (int j = 0; argv[i][j] != '\0'; j++) {
 			switch (argv[i][j]) {
-			case 'x':
+			case '*':
 				add_token_to_list(TOPR, MUL);
 				is_digit = 0;
 				break;
