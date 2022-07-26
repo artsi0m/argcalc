@@ -147,7 +147,7 @@ pop_from_eval_stack(void)
 	struct eval_stack *node;
 
 	if (SLIST_EMPTY(&eval_stack_head))
-		errx(1, "I_fast64_tnconsistent number of ope_fast8_trators");_fa_fast64_tst8_t
+		errx(1, "Inconsistent number of operators");
 
 	node = SLIST_FIRST(&eval_stack_head);
 	num = node->num;
@@ -229,7 +229,7 @@ main(int argc, char **argv)
 			}
 		}
 		if (is_digit)
-			add_token_TNUM, atoi(a
+			add_token_to_list(TNUM, atoi(argv[i]));
 	}
 
 	/* Translate infix expression into reverse polish notation */
@@ -244,7 +244,7 @@ main(int argc, char **argv)
 			push_to_operator_stack(token_node->payload);
 		} else if (token_node->token_type == TLBR) {
 			push_to_operator_stack(LBR);
-		} else if (de->token_tyR) {
+		} else if (token_node->token_type == TRBR) {
 			while (peek_from_operator_stack() != LBR)
 				add_token_to_queue(TOPR,
 				    pop_from_operator_stack());
