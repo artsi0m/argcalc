@@ -1,4 +1,4 @@
-/*% cc -Wall -Wextra -g % -o # 
+/*% cc -Wall -Wextra -g % -o #
  * Copyright (c) 2022 Artsiom Karakin <rakka.artem@yandex.ru>
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -23,7 +23,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 enum token_type { TNUM, TOPR, TLBR, TRBR };
 /* Enum's from precedence will be appearing only on operator stack */
@@ -61,7 +61,7 @@ struct eval_stack {
 SLIST_HEAD(, eval_stack) eval_stack_head;
 
 /*
- *  Add token which is either number, operator, left brace or right brace 
+ *  Add token which is either number, operator, left brace or right brace
  *  to token simple queue containing all tokens
  *  type is token type, load is number if token_type is TNUM or
  *  precedence if it is operator or left brace
@@ -81,7 +81,7 @@ add_token_to_list(int_fast8_t t_type, int_fast64_t load)
 }
 
 /*
- * Add token which is either number or operator to right polish notation 
+ * Add token which is either number or operator to right polish notation
  * queue for further use in sorting yard algorithm
  */
 void
@@ -100,7 +100,7 @@ add_token_to_queue(int_fast8_t t_type, int_fast64_t load)
 
 /*
  * Push certain operator or left brace to operator stack used in sorting
- * yard algorithm. Operator stack contains only operator's and left brace 
+ * yard algorithm. Operator stack contains only operator's and left brace
  * precedence's
  */
 void
@@ -114,13 +114,14 @@ push_to_operator_stack(int_fast8_t operator)
 	p->operator = operator;
 	SLIST_INSERT_HEAD(&operator_stack_head, p, next);
 }
+
 /*
- * Peek from operator stack. This means to look what is on top of 
- * operator stack and return it. If operator stack is empty it 
+ * Peek from operator stack. This means to look what is on top of
+ * operator stack and return it. If operator stack is empty it
  * return left bracket.
- *  Used in sorting yard algorithm. 
+ *  Used in sorting yard algorithm.
  */
-int
+int_fast8_t
 peek_from_operator_stack(void)
 {
 	int_fast8_t operator = LBR;
@@ -134,11 +135,11 @@ peek_from_operator_stack(void)
 	return operator;
 }
 
-/* 
+/*
  * Pop from revers polish notation operator stack. Used in sorting yard
  * algorithm. May lead to segfault if operator stack is empty
  */
-int
+int_fast8_t
 pop_from_operator_stack(void)
 {
 	int_fast8_t operator;
@@ -171,7 +172,7 @@ push_to_eval_stack(int_fast64_t num)
  * Pop number from evaluation stack. If stack is empty write error
  * that tell's that there is inconsistent number of operators
  */
-int
+int_fast64_t
 pop_from_eval_stack(void)
 {
 	int_fast64_t num;
@@ -189,8 +190,99 @@ pop_from_eval_stack(void)
 }
 
 /*
+ * substract operand_second from operand_first
+ * This should report error if overflow occurs
+ */
+int_fast64_t
+substract(int_fast64_t op_first, int_fast64_t op_second)
+{
+	int_fast64_t res;
+
+	if ((op_second > 0 && op_first < INT_FAST64_MIN + op_second) ||
+	    (op_second < 0 && op_first > INT_FAST64_MAX + op_second)) {
+		errx(1, "Integer overflow");
+	} else {
+		res = op_first - op_second;
+	}
+	return res;
+}
+
+/*
+ * Addup operand_second to operand_first
+ * This should report error if overflow occurs
+ * and it is reporting it
+ */
+int_fast64_t
+addup(int_fast64_t op_first, int_fast64_t op_second)
+{
+	int_fast64_t res;
+	if (((op_second > 0) && (op_first > (INT_FAST64_MAX - op_second))) ||
+	    ((op_second < 0) && (op_first < (INT_FAST64_MIN - op_second)))) {
+		errx(1, "Integer overflow");
+	} else {
+		res = op_first + op_second;
+	}
+	return res;
+}
+
+/*
+ * Multiply two numbers: op_first and op_second and
+ * handle all possible overflow errors
+ */
+int_fast64_t
+multiply(int_fast64_t op_first, int_fast64_t op_second)
+{
+	int_fast64_t res;
+
+	if (op_first > 0) { /* op_first is positive */
+		if (op_second > 0) { /* op_first and op_second is positive */
+			if (op_first > (INT_FAST64_MAX / op_second)) {
+				errx(1, "Integer overflow");
+			} else { /* op_first is positive op_second is not */
+				if (op_second < (INT_FAST64_MIN / op_first)) {
+					errx(1, "Integer overflow");
+				}
+			}
+		} /* op_first is positive, op_second nonpositive */
+	} else { /* op_first is nonpositive */
+		if (op_second > 0) { /* op_first is nonpositive, op_second is positive */
+			if (op_first < (INT_FAST64_MIN / op_second)) {
+				errx(1, "Integer overflow");
+			}
+		} else { /* op_first and op_second is nonpositive */
+			if ((op_first != 0) &&
+			    (op_second < (INT_FAST64_MAX / op_first))) {
+				errx(1, "Integer overflow");
+			}
+		} /* End if op_first and op_second are nonpositive */
+	} /* End if op_first is nonpositive */
+
+	res = op_first * op_second;
+	return res;
+}
+
+/*
+ * Devide op_first by op_second and handle if present
+ */
+int_fast64_t
+devide(int_fast64_t op_first, int_fast64_t op_second)
+{
+
+	int_fast64_t res;
+
+	if (op_second == 0)
+		errx(1, "Division by zero");
+
+	if ((op_first == INT_FAST64_MIN) && (op_second == -1))
+		errx(1, "Integer overflow");
+
+	res = op_first / op_second;
+	return res;
+}
+
+/*
  * ARGument CALCulator
- * Evaluate infix expression supplied as command line 
+ * Evaluate infix expression supplied as command line
  * arguments as expr does it
  */
 int
@@ -198,6 +290,7 @@ main(int argc, char **argv)
 {
 
 	int_fast8_t is_digit;
+	const char *errstr;
 
 	SIMPLEQ_INIT(&token_list_head);
 	SLIST_INIT(&operator_stack_head);
@@ -210,6 +303,7 @@ main(int argc, char **argv)
 	int_fast8_t operator;
 	int_fast64_t operand_first;
 	int_fast64_t operand_second;
+	int_fast64_t operand_result;
 
 	/* Turn charaters from command line arguments into tokens */
 	for (int i = 1; i < argc && argc > MIN_ARGS; i++) {
@@ -249,7 +343,7 @@ main(int argc, char **argv)
 				break;
 			default:
 			/*
-			 * Set is_digit != 0 if all charaters in argv[i] 
+			 * Set is_digit != 0 if all charaters in argv[i]
 			 * are digits.
 			 */
 				if (j == 0 || is_digit != 0)
@@ -259,8 +353,14 @@ main(int argc, char **argv)
 				break;
 			}
 		}
-		if (is_digit)
-			add_token_to_list(TNUM, atoi(argv[i]));
+		if (is_digit){
+			add_token_to_list(TNUM, strtonum(argv[i],\
+				 INT_FAST64_MIN, INT_FAST64_MAX, &errstr));
+			if (errstr != NULL)
+				errx(1, "number \"%s\" is %s", argv[i], errstr); 
+		}		
+
+
 	}
 
 	/* Translate infix expression into reverse polish notation */
@@ -280,7 +380,7 @@ main(int argc, char **argv)
 				add_token_to_queue(TOPR,
 				    pop_from_operator_stack());
 		/* Pop the left bracket from the stack and discard it */
-			pop_from_operator_stack(); 
+			pop_from_operator_stack();
 		}
 		SIMPLEQ_REMOVE_HEAD(&token_list_head, next);
 		free(token_node);
@@ -289,7 +389,6 @@ main(int argc, char **argv)
 		add_token_to_queue(TOPR, pop_from_operator_stack());
 	}
 
-
 	/* Evaluate RPN expression using stack */
 	while (!SIMPLEQ_EMPTY(&rpn_queue_head)) {
 		rpn_node = SIMPLEQ_FIRST(&rpn_queue_head);
@@ -297,24 +396,29 @@ main(int argc, char **argv)
 			push_to_eval_stack(rpn_node->payload);
 		else if (rpn_node->token_type == TOPR) {
 			operator = rpn_node->payload;
+	/* We should get second operand first because we use stack */
 			operand_second = pop_from_eval_stack();
 			operand_first = pop_from_eval_stack();
 			switch (operator) {
 			case SUB:
-				push_to_eval_stack(operand_first -
+				operand_result = substract(operand_first,
 				    operand_second);
+				push_to_eval_stack(operand_result);
 				break;
 			case ADD:
-				push_to_eval_stack(operand_first +
+				operand_result = addup(operand_first,
 				    operand_second);
+				push_to_eval_stack(operand_result);
 				break;
 			case DIV:
-				push_to_eval_stack(operand_first /
+				operand_result = devide(operand_first,
 				    operand_second);
+				push_to_eval_stack(operand_result);
 				break;
 			case MUL:
-				push_to_eval_stack(operand_first *
+				operand_result = multiply(operand_first,
 				    operand_second);
+				push_to_eval_stack(operand_result);
 				break;
 			default:
 				break;
@@ -325,7 +429,8 @@ main(int argc, char **argv)
 	}
 
 	if (!SLIST_EMPTY(&eval_stack_head))
-		printf("%d \n", pop_from_eval_stack());
+	/*             "%""lld"" \n" on my machine */
+		printf("%"PRIdFAST64" \n", pop_from_eval_stack());
 
 	return 0;
 }
