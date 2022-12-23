@@ -1,5 +1,5 @@
 /*% cc -Wall -Wextra -g % -o #
- * Copyright (c) 2022 Artsiom Karakin <rakka.artem@yandex.ru>
+ * Copyright (c) 2022 Artsiom Karakin <karakin2000@gmail.com>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
