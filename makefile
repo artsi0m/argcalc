@@ -1,5 +1,7 @@
 # Makefile for BSD make
 CFLAGS=-Wall -Wextra -g
 
-argcalc:
-	${CC} ${CFLAGS} $*.c -o $*
+PROG	= argcalc
+SRCS	= argcalc.c
+MAN	=
+.include <bsd.prog.mk>
