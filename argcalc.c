@@ -1,5 +1,5 @@
 /*% cc -Wall -Wextra -g % -o #
- * Copyright (c) 2022 Artsiom Karakin <karakin2000@gmail.com>
+ * Copyright © 2022 — 2023 Artsiom Karakin <karakin2000@gmail.com>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,11 +15,12 @@
  */
 #if defined(__OpenBSD__)
 #include <sys/queue.h>
+#include <err.h>
 #else
 #include "queue.h"
 #endif
 
-#include <err.h>
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,0 +1,11 @@
+** argcalc – arithmetic only subset of expr(1)
+
+*** Fixes
+
+**** TODO Use simple int types
+
+**** TODO Break main into smaller functions
+
+**** TODO Port to other platforms
+Now it uses OpenBSD specific functions.
+
