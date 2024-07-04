@@ -1,2 +1,4 @@
 .comfile
 argcalc
+*.d
+*.o
