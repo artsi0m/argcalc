@@ -41,14 +41,14 @@ SIMPLEQ_HEAD(, token_list) token_list_head;
 
 struct operator_stack {
 	SLIST_ENTRY(operator_stack) next;
-	int_fast8_t operator; /* Same value as precedence */
+	int operator; /* Same value as precedence */
 };
 
 SLIST_HEAD(, operator_stack) operator_stack_head;
 
 struct rpn_queue {
 	SIMPLEQ_ENTRY(rpn_queue) next;
-	int_fast8_t token_type;
+	int token_type;
 	int_fast64_t payload;
 };
 
@@ -68,7 +68,7 @@ SLIST_HEAD(, eval_stack) eval_stack_head;
  *  precedence if it is operator or left brace
  */
 void
-add_token_to_list(int_fast8_t t_type, int_fast64_t load)
+add_token_to_list(int t_type, int_fast64_t load)
 {
 	struct token_list *node;
 
@@ -86,7 +86,7 @@ add_token_to_list(int_fast8_t t_type, int_fast64_t load)
  * queue for further use in sorting yard algorithm
  */
 void
-add_token_to_queue(int_fast8_t t_type, int_fast64_t load)
+add_token_to_queue(int t_type, int_fast64_t load)
 {
 	struct rpn_queue *node;
 
@@ -105,7 +105,7 @@ add_token_to_queue(int_fast8_t t_type, int_fast64_t load)
  * precedence's
  */
 void
-push_to_operator_stack(int_fast8_t operator)
+push_to_operator_stack(int operator)
 {
 	struct operator_stack *p;
 
@@ -122,10 +122,10 @@ push_to_operator_stack(int_fast8_t operator)
  * return left bracket.
  *  Used in sorting yard algorithm.
  */
-int_fast8_t
+int
 peek_from_operator_stack(void)
 {
-	int_fast8_t operator = LBR;
+	int operator = LBR;
 	struct operator_stack *node;
 
 	if (!SLIST_EMPTY(&operator_stack_head)) {
@@ -140,10 +140,10 @@ peek_from_operator_stack(void)
  * Pop from revers polish notation operator stack. Used in sorting yard
  * algorithm. May lead to segfault if operator stack is empty
  */
-int_fast8_t
+int
 pop_from_operator_stack(void)
 {
-	int_fast8_t operator;
+	int operator;
 	struct operator_stack *node;
 
 	node = SLIST_FIRST(&operator_stack_head);
@@ -290,7 +290,7 @@ int
 main(int argc, char **argv)
 {
 
-	int_fast8_t is_digit;
+	int is_digit;
 	const char *errstr;
 
 	SIMPLEQ_INIT(&token_list_head);
@@ -301,7 +301,7 @@ main(int argc, char **argv)
 	struct token_list *token_node;
 	struct rpn_queue *rpn_node;
 
-	int_fast8_t operator;
+	int operator;
 	int_fast64_t operand_first;
 	int_fast64_t operand_second;
 	int_fast64_t operand_result;
