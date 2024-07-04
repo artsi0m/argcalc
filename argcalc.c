@@ -33,7 +33,7 @@ enum { MIN_ARGS = 3};
 
 struct token_list {
 	SIMPLEQ_ENTRY(token_list) next;
-	int_fast8_t token_type;
+	int token_type;
 	int_fast64_t payload;
 };
 
