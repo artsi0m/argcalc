@@ -24,7 +24,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <inttypes.h>
+#include <limits.h>
 
 enum token_type { TNUM, TOPR, TLBR, TRBR };
 /* Enum's from precedence will be appearing only on operator stack */
@@ -34,7 +34,7 @@ enum { MIN_ARGS = 3};
 struct token_list {
 	SIMPLEQ_ENTRY(token_list) next;
 	int token_type;
-	int_fast64_t payload;
+	long long int payload;
 };
 
 SIMPLEQ_HEAD(, token_list) token_list_head;
@@ -49,14 +49,14 @@ SLIST_HEAD(, operator_stack) operator_stack_head;
 struct rpn_queue {
 	SIMPLEQ_ENTRY(rpn_queue) next;
 	int token_type;
-	int_fast64_t payload;
+	long long int payload;
 };
 
 SIMPLEQ_HEAD(, rpn_queue) rpn_queue_head;
 
 struct eval_stack {
 	SLIST_ENTRY(eval_stack) next;
-	int_fast64_t num;
+	long long int num;
 };
 
 SLIST_HEAD(, eval_stack) eval_stack_head;
@@ -68,7 +68,7 @@ SLIST_HEAD(, eval_stack) eval_stack_head;
  *  precedence if it is operator or left brace
  */
 void
-add_token_to_list(int t_type, int_fast64_t load)
+add_token_to_list(int t_type, long long int load)
 {
 	struct token_list *node;
 
@@ -86,7 +86,7 @@ add_token_to_list(int t_type, int_fast64_t load)
  * queue for further use in sorting yard algorithm
  */
 void
-add_token_to_queue(int t_type, int_fast64_t load)
+add_token_to_queue(int t_type, long long int load)
 {
 	struct rpn_queue *node;
 
@@ -158,7 +158,7 @@ pop_from_operator_stack(void)
  * Push number to evaluation stack used to calculate expression
  */
 void
-push_to_eval_stack(int_fast64_t num)
+push_to_eval_stack(long long int num)
 {
 	struct eval_stack *node;
 
@@ -173,10 +173,10 @@ push_to_eval_stack(int_fast64_t num)
  * Pop number from evaluation stack. If stack is empty write error
  * that tell's that there is inconsistent number of operators
  */
-int_fast64_t
+long long int
 pop_from_eval_stack(void)
 {
-	int_fast64_t num;
+	long long int num;
 	struct eval_stack *node;
 
 	if (SLIST_EMPTY(&eval_stack_head))
@@ -194,13 +194,13 @@ pop_from_eval_stack(void)
  * substract operand_second from operand_first
  * This should report error if overflow occurs
  */
-int_fast64_t
-substract(int_fast64_t op_first, int_fast64_t op_second)
+long long int
+substract(long long int op_first, long long int op_second)
 {
-	int_fast64_t res;
+	long long int res;
 
-	if ((op_second > 0 && op_first < INT_FAST64_MIN + op_second) ||
-	    (op_second < 0 && op_first > INT_FAST64_MAX + op_second)) {
+	if ((op_second > 0 && op_first < LONG_MIN + op_second) ||
+	    (op_second < 0 && op_first > LONG_MAX + op_second)) {
 		errx(1, "Integer overflow");
 	} else {
 		res = op_first - op_second;
@@ -213,12 +213,12 @@ substract(int_fast64_t op_first, int_fast64_t op_second)
  * This should report error if overflow occurs
  * and it is reporting it
  */
-int_fast64_t
-addup(int_fast64_t op_first, int_fast64_t op_second)
+long long int
+addup(long long int op_first, long long int op_second)
 {
-	int_fast64_t res;
-	if (((op_second > 0) && (op_first > (INT_FAST64_MAX - op_second))) ||
-	    ((op_second < 0) && (op_first < (INT_FAST64_MIN - op_second)))) {
+	long long int res;
+	if (((op_second > 0) && (op_first > (LONG_MAX - op_second))) ||
+	    ((op_second < 0) && (op_first < (LONG_MIN - op_second)))) {
 		errx(1, "Integer overflow");
 	} else {
 		res = op_first + op_second;
@@ -230,29 +230,29 @@ addup(int_fast64_t op_first, int_fast64_t op_second)
  * Multiply two numbers: op_first and op_second and
  * handle all possible overflow errors
  */
-int_fast64_t
-multiply(int_fast64_t op_first, int_fast64_t op_second)
+long long int
+multiply(long long int op_first, long long int op_second)
 {
-	int_fast64_t res;
+	long long int res;
 
 	if (op_first > 0) { /* op_first is positive */
 		if (op_second > 0) { /* op_first and op_second is positive */
-			if (op_first > (INT_FAST64_MAX / op_second)) {
+			if (op_first > (LONG_MAX / op_second)) {
 				errx(1, "Integer overflow");
 			} else { /* op_first is positive op_second is not */
-				if (op_second < (INT_FAST64_MIN / op_first)) {
+				if (op_second < (LONG_MIN / op_first)) {
 					errx(1, "Integer overflow");
 				}
 			}
 		} /* op_first is positive, op_second nonpositive */
 	} else { /* op_first is nonpositive */
 		if (op_second > 0) { /* op_first is nonpositive, op_second is positive */
-			if (op_first < (INT_FAST64_MIN / op_second)) {
+			if (op_first < (LONG_MIN / op_second)) {
 				errx(1, "Integer overflow");
 			}
 		} else { /* op_first and op_second is nonpositive */
 			if ((op_first != 0) &&
-			    (op_second < (INT_FAST64_MAX / op_first))) {
+			    (op_second < (LONG_MAX / op_first))) {
 				errx(1, "Integer overflow");
 			}
 		} /* End if op_first and op_second are nonpositive */
@@ -265,16 +265,16 @@ multiply(int_fast64_t op_first, int_fast64_t op_second)
 /*
  * Devide op_first by op_second and handle if present
  */
-int_fast64_t
-devide(int_fast64_t op_first, int_fast64_t op_second)
+long long int
+devide(long long int op_first, long long int op_second)
 {
 
-	int_fast64_t res;
+	long long int res;
 
 	if (op_second == 0)
 		errx(1, "Division by zero");
 
-	if ((op_first == INT_FAST64_MIN) && (op_second == -1))
+	if ((op_first == LONG_MIN) && (op_second == -1))
 		errx(1, "Integer overflow");
 
 	res = op_first / op_second;
@@ -302,9 +302,9 @@ main(int argc, char **argv)
 	struct rpn_queue *rpn_node;
 
 	int operator;
-	int_fast64_t operand_first;
-	int_fast64_t operand_second;
-	int_fast64_t operand_result;
+	long long int operand_first;
+	long long int operand_second;
+	long long int operand_result;
 
 	/* Turn charaters from command line arguments into tokens */
 	for (int i = 1; i < argc && argc > MIN_ARGS; i++) {
@@ -356,7 +356,7 @@ main(int argc, char **argv)
 		}
 		if (is_digit){
 			add_token_to_list(TNUM, strtonum(argv[i],\
-				 INT_FAST64_MIN, INT_FAST64_MAX, &errstr));
+				 LONG_MIN, LONG_MAX, &errstr));
 			if (errstr != NULL)
 				errx(1, "number \"%s\" is %s", argv[i], errstr); 
 		}		
@@ -430,8 +430,7 @@ main(int argc, char **argv)
 	}
 
 	if (!SLIST_EMPTY(&eval_stack_head))
-	/*             "%""lld"" \n" on my machine */
-		printf("%"PRIdFAST64" \n", pop_from_eval_stack());
+		printf("%lld \n", pop_from_eval_stack());
 
 	return 0;
 }
