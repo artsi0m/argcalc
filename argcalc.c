@@ -18,6 +18,7 @@
 #include <err.h>
 #else
 #include "queue.h"
+#include <bsd/bsd.h>
 #endif
 
 
