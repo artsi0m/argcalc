@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <stdckdint.h>
 
 enum token_type { TNUM, TOPR, TLBR, TRBR };
 /* Enum's from precedence will be appearing only on operator stack */
@@ -191,77 +192,6 @@ pop_from_eval_stack(void)
 	return num;
 }
 
-/*
- * substract operand_second from operand_first
- * This should report error if overflow occurs
- */
-long long int
-substract(long long int op_first, long long int op_second)
-{
-	long long int res;
-
-	if ((op_second > 0 && op_first < LONG_MIN + op_second) ||
-	    (op_second < 0 && op_first > LONG_MAX + op_second)) {
-		errx(1, "Integer overflow");
-	} else {
-		res = op_first - op_second;
-	}
-	return res;
-}
-
-/*
- * Addup operand_second to operand_first
- * This should report error if overflow occurs
- * and it is reporting it
- */
-long long int
-addup(long long int op_first, long long int op_second)
-{
-	long long int res;
-	if (((op_second > 0) && (op_first > (LONG_MAX - op_second))) ||
-	    ((op_second < 0) && (op_first < (LONG_MIN - op_second)))) {
-		errx(1, "Integer overflow");
-	} else {
-		res = op_first + op_second;
-	}
-	return res;
-}
-
-/*
- * Multiply two numbers: op_first and op_second and
- * handle all possible overflow errors
- */
-long long int
-multiply(long long int op_first, long long int op_second)
-{
-	long long int res;
-
-	if (op_first > 0) { /* op_first is positive */
-		if (op_second > 0) { /* op_first and op_second is positive */
-			if (op_first > (LONG_MAX / op_second)) {
-				errx(1, "Integer overflow");
-			} else { /* op_first is positive op_second is not */
-				if (op_second < (LONG_MIN / op_first)) {
-					errx(1, "Integer overflow");
-				}
-			}
-		} /* op_first is positive, op_second nonpositive */
-	} else { /* op_first is nonpositive */
-		if (op_second > 0) { /* op_first is nonpositive, op_second is positive */
-			if (op_first < (LONG_MIN / op_second)) {
-				errx(1, "Integer overflow");
-			}
-		} else { /* op_first and op_second is nonpositive */
-			if ((op_first != 0) &&
-			    (op_second < (LONG_MAX / op_first))) {
-				errx(1, "Integer overflow");
-			}
-		} /* End if op_first and op_second are nonpositive */
-	} /* End if op_first is nonpositive */
-
-	res = op_first * op_second;
-	return res;
-}
 
 /*
  * Devide op_first by op_second and handle if present
@@ -403,14 +333,15 @@ main(int argc, char **argv)
 			operand_first = pop_from_eval_stack();
 			switch (operator) {
 			case SUB:
-				operand_result = substract(operand_first,
-				    operand_second);
+				ckd_sub(&operand_result,
+					operand_first, operand_second);
 				push_to_eval_stack(operand_result);
 				break;
 			case ADD:
-				operand_result = addup(operand_first,
-				    operand_second);
+				ckd_add(&operand_result,
+					operand_first, operand_second);
 				push_to_eval_stack(operand_result);
+				
 				break;
 			case DIV:
 				operand_result = devide(operand_first,
@@ -418,8 +349,8 @@ main(int argc, char **argv)
 				push_to_eval_stack(operand_result);
 				break;
 			case MUL:
-				operand_result = multiply(operand_first,
-				    operand_second);
+				ckd_mul(&operand_result,
+					operand_first, operand_second);
 				push_to_eval_stack(operand_result);
 				break;
 			default:
